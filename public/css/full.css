@@ -1,0 +1,44 @@
+body {
+    background-image: url("/img/fullbg.png");
+    background-repeat: repeat;
+    background-size: 8%;
+}
+.main-box {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    padding: 2%;
+    background-color: rgba(20,20,20,1);
+    color: white;
+    text-align: center;
+}
+.box-title {
+    font-weight: bold;
+    margin-bottom: 10%;
+}
+.box-input {
+    width: 96%;
+    padding: 2%;
+    background-color: rgba(10,10,10,1);
+    color: white;
+    outline: none;
+    border: none;
+    margin-bottom: 4%;
+    font-size: 16px;
+}
+.box-button {
+    width: 100%;
+    padding: 2%;
+    outline: none;
+    border: none;
+    background-color: rgba(10,10,10,1);
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    transition: background-color 0.1s, color 0.1s;
+}
+.box-button:hover {
+    background-color: white;
+    color: rgba(10,10,10,1);
+}

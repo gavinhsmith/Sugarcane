@@ -1,0 +1,123 @@
+.sidenav {
+    height: 100%;
+    width: 160px;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    background-color: #3f3f3f;
+    overflow-x: hidden;
+    
+}
+
+.sidenav-header {
+    padding: 5% 5%;
+}
+.sidenav-header {
+    color: white;
+}
+.sidenav-header h2 {
+    font-size: 25px;
+}
+.sidenav-header p {
+    font-size: 14px;
+}
+
+.sidenav a {
+    width: 90%;
+    padding: 5% 5%;
+    text-decoration: none;
+    font-size: 18px;
+    color: white;
+    display: block;
+    transition: background-color 0.1s, color 0.1s, font-weight 0.1s;
+}
+
+.sidenav a:hover {
+    font-weight: bold;
+    color: #f1f1f1;
+    background-color: #0f0f0f;
+}
+
+.content {
+    margin-left: 160px; /* Same as the width of the sidebar */
+    padding: 10px;
+    color: white
+}
+
+.console-window {
+    background-color: black;
+    width: 97%;
+    height: 500px;
+    padding: 1.5%;
+    color: white;
+    font-family: monospace;
+    font-size: 14px;
+    overflow-y:scroll;
+    overflow-wrap:break-word;
+}
+
+.console-window p {
+    font-family: monospace;
+    font-size: 14px;
+}
+
+.console-input {
+    width: 97%;
+    background-color: black;
+    color: white;
+    padding: 0.5% 1.5% 1.5% 1.5%;
+    font-size: 14px;
+    border: none;
+    outline: none;
+    font-family: monospace;
+}
+
+
+.system-status {
+    width: 100%;
+    display: flex;
+}
+.status-card-icon {
+    font-size: 60px;
+    padding: 0 2%;
+}
+.system-status-card {
+    padding: 1%;
+    background-color: #f0f0f0;
+    color: black;
+    margin-left: 1%;
+    border-radius: 5px;
+    display: flex;
+}
+.system-status-card:first-child {
+    margin-left: 0;  
+}
+.status-card-data {
+    margin-left: 3%;
+}
+
+
+.text-area {
+    width: 97%;
+    height: 500px;
+    padding: 1.5%;
+    font-size: 14px;
+    resize: none;
+    background-color: #3f3f3f;
+    color: white;
+}
+.text-area-submit {
+    padding: 0.75% 2%;
+    margin-top: 0.25%;
+    background-color: #3f3f3f;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    font-weight: bold;
+    color: white;
+}
+.text-area-submit:hover {
+    background-color: #f0f0f0;
+    color: black;
+}
