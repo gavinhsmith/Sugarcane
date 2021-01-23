@@ -470,6 +470,7 @@ app.post("/app/newUser", function (req, res) {
                 const parsedData = JSON.parse(data);
 
                 for (let i = 0; i < parsedData.length; i++) {
+                    if (parsedData[i] == null) continue;
                     if (parsedData[i].username === req.body.username) {
                         res.redirect("/dashboard/users?status=usrexist");
                     };
