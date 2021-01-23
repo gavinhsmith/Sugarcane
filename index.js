@@ -514,7 +514,7 @@ app.post("/app/user/:username/changePass", function(req, res) {
 
                 for (let i = 0; i < dataP.length; i++) {
                     //console.info(`Alpha 3-${i+1}`);
-                    if (dataP == null) continue;
+                    if (dataP[i] == null) continue;
                     if (req.params.username === dataP[i].username) {
                         //console.info(`Alpha 4`);
                         const salt = crypto.randomBytes(16).toString('hex');
@@ -558,7 +558,7 @@ app.get("/app/user/:username/delete", function (req, res) {
                 const dataP = JSON.parse(data);
 
                 for (let i = 0; i < dataP.length; i++) {
-                    if (dataP == null) continue;
+                    if (dataP[i] == null) continue;
                     if (req.params.username === dataP[i].username) {
                         delete dataP[i];
                         fs.writeFile("config/userlist.json", JSON.stringify(dataP,null,4), function (err) {
@@ -588,7 +588,7 @@ app.post("/login", function (req, res) {
         } else {
             const dataP = JSON.parse(data);
             for (let i = 0; i < dataP.length; i++) {
-                if (dataP == null) continue;
+                if (dataP[i] == null) continue;
                 if (dataP[i].username === req.body.username) {
                     if (dataP[i].isHashed === true) {
                         const newHash = crypto.pbkdf2Sync(req.body.password, dataP[i].salt, 1000, 64, `sha512`).toString(`hex`);
