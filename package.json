@@ -1,14 +1,21 @@
 {
   "name": "sugarcane",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "A Web Panel for Minecraft Server Management",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gavinhsmith/Sugarcane.git"
+  },
   "keywords": [],
+  "bugs": {
+    "url": "https://github.com/gavinhsmith/Sugarcane/issues"
+  },
   "author": "gavinhsmith (https://gavinhsmith.tk/)",
-  "license": "GPLv3",
+  "license": "GPL-3.0",
   "dependencies": {
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.5",

@@ -14,3 +14,4 @@ Go ahead and fork this mess. I will look at forks occasionally and if what you d
 ## Licensing
 
 Minecraft is a trademark of Morjang Studios/Xbox Game Studios.
+Icons from Font Awesome.

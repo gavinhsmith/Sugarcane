@@ -19,10 +19,16 @@ if (!fs.existsSync("./config")) {
     fs.mkdirSync("./config");
     fs.writeFileSync("./config/app.json", JSON.stringify({
         "port": 80,
-        "socket_delay": 2,
+        "socket_delay": 0.5,
         "server_dir": "server"
     },null,4));
-    fs.writeFileSync("./config/userlist.json", JSON.stringify([],null,4));
+    fs.writeFileSync("./config/userlist.json", JSON.stringify([
+        {
+            username: "admin",
+            isHashed: false,
+            password: "admin"
+        }
+    ],null,4));
     fs.writeFileSync("./config/server.json", JSON.stringify({
         "name": "Server Name",
         "type": "Vanilla",
@@ -41,13 +47,19 @@ if (!fs.existsSync("./config")) {
         console.log(`Missing Configuation Files Found! Creating Them...`);
         fs.writeFileSync("./config/app.json", JSON.stringify({
             "port": 80,
-            "socket_delay": 2,
+            "socket_delay": 0.5,
             "server_dir": "server"
         },null,4));
     };
     if (!fs.existsSync("./config/userlist.json")) {
         console.log(`Missing Configuation Files Found! Creating Them...`);
-        fs.writeFileSync("./config/userlist.json", JSON.stringify([],null,4));
+        fs.writeFileSync("./config/userlist.json", JSON.stringify([
+            {
+                username: "admin",
+                isHashed: false,
+                password: "admin"
+            }
+        ],null,4));
     };
     if (!fs.existsSync("./config/server.json")) {
         console.log(`Missing Configuation Files Found! Creating Them...`);
@@ -77,18 +89,6 @@ function queryServer() {
 let server_active = false;
 let mc_server = null;
 
-function genAuthToken() {
-    return new Promise(function (resolve, reject) {
-        crypto.randomBytes(48, function(err, buffer) {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(buffer.toString('hex'));
-            };
-        });
-    });
-};
-
 class Session {
     constructor(token, user) {
         this.token = token;
@@ -105,14 +105,6 @@ function checkAuthToken(token) {
         }
     };
     return false;
-};
-function getUserSession(token) {
-    for (var i = 0; i < userSessions.length; i++) {
-        if (userSessions[i].token === token) {
-            return userSessions[i];
-        }
-    };
-    return null;
 };
 
 server.listen(config.port, function () {
@@ -171,9 +163,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(function (req, res, next) {
     req.loggedIn = checkAuthToken(req.cookies["AuthToken"]);
-    if (req.loggedIn) {
-        req.session = getUserSession(req.cookies["AuthToken"]);
-    };
     next();
 });
 
@@ -221,16 +210,15 @@ app.get("/login", function (req, res) {
     res.render("login", {layout: "full"});
 });
 
-// API sort of thing
-app.post("/login", function (req, res) {
-    genAuthToken().then(token => {
-        res.cookie("AuthToken", token);
-        userSessions.push(new Session(token, {name:"Test"}));
-        res.redirect("/dashboard?status=logsuc");
-    }).catch(e => {
-        res.redirect("/login?status=generr");
-    });
+app.get("/dashboard/users", function (req, res) {
+    if (req.loggedIn) {
+        res.render("users");
+    } else {
+        res.redirect("/login?status=logreq");
+    };
 });
+
+// API sort of thing
 
 app.post("/server/updateconfig", function (req, res) {
     if (req.loggedIn) {
@@ -429,4 +417,214 @@ app.get("/server/stop", function (req, res) {
     } else {
         res.redirect("/login?status=logreq");
     };
+});
+
+function createUserJSON(username, hash, salt) {
+    return {
+        username: username,
+        isHashed: true,
+        salt: salt,
+        hash: hash
+    };
+};
+
+app.get("/app/userList", function (req, res) {
+    if (req.loggedIn) {
+        fs.readFile(`config/userlist.json`, "utf8", function (err, data) {
+            if (err) {
+                res.writeHead(500, {"Content-Type":"application/json"});
+                res.write(JSON.stringify({
+                    status: 500,
+                    data: {
+                        name: new Error("Internal Server Error").toString()
+                    }
+                }, null, 2));
+                res.end();
+            } else {
+                res.writeHead(200, {"Content-Type":"application/json"});
+                res.write(JSON.stringify({
+                    status: 200,
+                    data: JSON.parse(data)
+                }, null, 2));
+                res.end();
+            };
+        });
+    } else {
+        res.writeHead(403, {"Content-Type":"application/json"});
+        res.write(JSON.stringify({
+            status: 403,
+            data: {
+                name: new Error("Forbidden").toString()
+            }
+        }, null, 2));
+        res.end();
+    };
+});
+
+app.post("/app/newUser", function (req, res) {
+    if (req.loggedIn) {
+        fs.readFile(`config/userlist.json`, "utf8", function (err, data) {
+            if (err) {
+                res.redirect("/dashboard/users?status=generr");
+            } else {
+                const parsedData = JSON.parse(data);
+
+                for (let i = 0; i < parsedData.length; i++) {
+                    if (parsedData[i].username === req.body.username) {
+                        res.redirect("/dashboard/users?status=usrexist");
+                    };
+                };
+
+                const salt = crypto.randomBytes(16).toString('hex');
+                const hash = crypto.pbkdf2Sync(req.body.password, salt, 1000, 64, `sha512`).toString(`hex`);
+                const user = createUserJSON(req.body.username, hash, salt);
+                
+                //user.password = req.body.password;
+
+                parsedData.push(user);
+
+                fs.writeFile(`config/userlist.json`, JSON.stringify(parsedData,null,4), function (err) {
+                    if (err) {
+                        res.redirect("/dashboard/users?status=generr");
+                    } else {
+                        res.redirect("/dashboard/users?status=newusrsc");
+                    };
+                });
+            };
+        });
+    } else {
+        res.redirect("/login?status=logreq");
+    };
+});
+
+app.get("/logout", function (req, res) {
+    res.clearCookie("AuthToken");
+    res.redirect("/login");
+});
+
+app.post("/app/user/:username/changePass", function(req, res) {
+    if (req.loggedIn) {
+        //console.info(`Alpha 1`);
+        fs.readFile("config/userlist.json", "utf8", function (err, data) {
+            if (err) {
+                res.redirect("/dashboard/users?status=generr");
+            } else {
+                //console.info(`Alpha 2`);
+                const dataP = JSON.parse(data);
+
+                for (let i = 0; i < dataP.length; i++) {
+                    //console.info(`Alpha 3-${i+1}`);
+                    if (dataP == null) continue;
+                    if (req.params.username === dataP[i].username) {
+                        //console.info(`Alpha 4`);
+                        const salt = crypto.randomBytes(16).toString('hex');
+                        const hash = crypto.pbkdf2Sync(req.body.password, salt, 1000, 64, `sha512`).toString(`hex`);
+                        dataP[i].salt = salt;
+                        dataP[i].hash = hash;
+                        fs.writeFile("config/userlist.json", JSON.stringify(dataP,null,4), function (err) {
+                            if (err) {
+                                res.redirect("/dashboard/users?status=generr");
+                            } else {
+                                //console.info(`Alpha 5`);
+                                console.info(`Changed ${dataP[i].username}'s Password to ${req.body.password}`);
+                                res.redirect("/dashboard/users?status=usrpsdchn");
+                            };
+                        });
+                        break;
+                    };
+                    if (i === dataP.length-1) res.redirect("/dashboard/users?status=usrno");
+                };
+            };
+        });
+    } else {
+        res.redirect("/login?status=logreq");
+    };
+});
+
+app.get("/dashboard/users/new", function (req, res) {
+    if (req.loggedIn) {
+        res.render("newUser", {layout: "full"});
+    } else {
+        res.redirect("/login?status=logreq");
+    };
+});
+
+app.get("/app/user/:username/delete", function (req, res) {
+    if (req.loggedIn) {
+        fs.readFile("config/userlist.json", "utf8", function (err, data) {
+            if (err) {
+                res.redirect("/dashboard/users?status=generr");
+            } else {
+                const dataP = JSON.parse(data);
+
+                for (let i = 0; i < dataP.length; i++) {
+                    if (dataP == null) continue;
+                    if (req.params.username === dataP[i].username) {
+                        delete dataP[i];
+                        fs.writeFile("config/userlist.json", JSON.stringify(dataP,null,4), function (err) {
+                            if (err) {
+                                res.redirect("/dashboard/users?status=generr");
+                            } else {
+                                console.info(`Deleted User ${req.params.username}`);
+                                res.redirect("/dashboard/users?status=usrdel");
+                            };
+                        });
+                        break;
+                    };
+                    if (i === dataP.length-1) res.redirect("/dashboard/users?status=usrno");
+                };
+            };
+        });
+    } else {
+        res.redirect("/login?status=logreq");
+    };
+});
+
+app.post("/login", function (req, res) {
+    let foundAccount = false;
+    fs.readFile(`config/userlist.json`, function (err, data) {
+        if (err) {
+            res.redirect("/login?status=generr");
+        } else {
+            const dataP = JSON.parse(data);
+            for (let i = 0; i < dataP.length; i++) {
+                if (dataP == null) continue;
+                if (dataP[i].username === req.body.username) {
+                    if (dataP[i].isHashed === true) {
+                        const newHash = crypto.pbkdf2Sync(req.body.password, dataP[i].salt, 1000, 64, `sha512`).toString(`hex`);
+                        if (dataP[i].hash === newHash) {
+                            crypto.randomBytes(48, function(err, buffer) {
+                                if (err) {
+                                    res.redirect("/login?status=usrno");
+                                    foundAccount = true;
+                                } else {
+                                    res.cookie("AuthToken", buffer.toString('hex'));
+                                    userSessions.push(new Session(buffer.toString('hex'), {name:"Unused"}));
+                                    res.redirect("/dashboard?status=logsuc");
+                                    foundAccount = true;
+                                };
+                            });
+                            break;
+                        };
+                    } else {
+                        if (dataP[i].password === req.body.password) {
+                            crypto.randomBytes(48, function(err, buffer) {
+                                if (err) {
+                                    res.redirect("/login?status=usrno");
+                                    foundAccount = true;
+                                } else {
+                                    res.cookie("AuthToken", buffer.toString('hex'));
+                                    userSessions.push(new Session(buffer.toString('hex'), {name:"Unused"}));
+                                    res.redirect("/dashboard?status=logsucset");
+                                    foundAccount = true;
+                                };
+                            });
+                            break;
+                        };
+                    };
+                };
+                if (i === dataP.length-1) res.redirect("/login?status=usrno");
+            };
+        };
+    });
 });

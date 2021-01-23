@@ -39,6 +39,12 @@ msgMap.set("svrstpof", new PopupMessage("Server must be started to be stopped!",
 msgMap.set("svrsrton", new PopupMessage("Server must be stopped to be started!", "ERR"));
 msgMap.set("svrstpsc", new PopupMessage("Stopping server!", "SUC"));
 msgMap.set("svrsrtsc", new PopupMessage("Starting server!", "SUC"));
+msgMap.set("usrexist", new PopupMessage("User already exists!", "ERR"));
+msgMap.set("newusrsc", new PopupMessage("Created New User!", "SUC"));
+msgMap.set("usrno", new PopupMessage("Username & password do not exist/are incorrect!", "ERR"));
+msgMap.set("logsucset", new PopupMessage("Logged in using default account! Get your own soon to stay safe!", "SUC"));
+msgMap.set("usrpsdchn", new PopupMessage("Changed User Password!", "SUC"));
+msgMap.set("usrdel", new PopupMessage("Successfully Deleted User!", "SUC"));
 
 if (urlParams.status) {
     let msg = msgMap.get(urlParams.status);
