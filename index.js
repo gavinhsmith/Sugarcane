@@ -19,7 +19,7 @@ if (!fs.existsSync("./config")) {
     fs.mkdirSync("./config");
     fs.writeFileSync("./config/app.json", JSON.stringify({
         "port": 80,
-        "socket_delay": 5,
+        "socket_delay": 2,
         "server_dir": "server"
     },null,4));
     fs.writeFileSync("./config/userlist.json", JSON.stringify([],null,4));
@@ -41,7 +41,7 @@ if (!fs.existsSync("./config")) {
         console.log(`Missing Configuation Files Found! Creating Them...`);
         fs.writeFileSync("./config/app.json", JSON.stringify({
             "port": 80,
-            "socket_delay": 5,
+            "socket_delay": 2,
             "server_dir": "server"
         },null,4));
     };
