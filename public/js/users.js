@@ -1,4 +1,9 @@
 const userTabel = document.getElementById("userTabel");
+const newUsrBtn = document.getElementById("newUsrBtn");
+
+newUsrBtn.addEventListener("click", function (e) {
+    window.location.href = '/dashboard/users/new';
+});
 
 function promptForPasswordChange(username) {
     return function (e) {
@@ -55,6 +60,7 @@ function generateHTML(username) {
 $.get("/app/userList", function (data) {
     if (data.status === 200) {
         for (let i = 0; i < data.data.length; i++) {
+            if (data.data[i] == null) continue;
             userTabel.appendChild(generateHTML(data.data[i].username));
         };
         console.log(`Got User List!`);
