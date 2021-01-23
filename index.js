@@ -1,5 +1,4 @@
 const child_proc = require("child_process");
-const myRL = require('serverline');
 const bodyParser = require('body-parser')
 const express = require("express");
 const http = require("http");
@@ -19,14 +18,16 @@ if (!fs.existsSync("./config")) {
     console.log(`No Configuation Files Found! Creating Some...`);
     fs.mkdirSync("./config");
     fs.writeFileSync("./config/app.json", JSON.stringify({
-        "port": 80
+        "port": 80,
+        "socket_delay": 5,
+        "server_dir": "server"
     },null,4));
     fs.writeFileSync("./config/userlist.json", JSON.stringify([]));
     fs.writeFileSync("./config/server.json", JSON.stringify({
         "name": "Server Name",
         "type": "Vanilla",
         "jarname": "server.jar",
-        "sudo": "sudo",
+        "sudo": null,
         "java": "java",
         "port": 25565,
         "query": true,
@@ -39,7 +40,9 @@ if (!fs.existsSync("./config")) {
     if (!fs.existsSync("./config/app.json")) {
         console.log(`Missing Configuation Files Found! Creating Them...`);
         fs.writeFileSync("./config/app.json", JSON.stringify({
-            "port": 80
+            "port": 80,
+            "socket_delay": 5,
+            "server_dir": "server"
         },null,4));
     };
     if (!fs.existsSync("./config/userlist.json")) {
@@ -52,7 +55,7 @@ if (!fs.existsSync("./config")) {
             "name": "Server Name",
             "type": "Vanilla",
             "jarname": "server.jar",
-            "sudo": "sudo",
+            "sudo": null,
             "java": "java",
             "port": 25565,
             "query": true,
@@ -85,8 +88,6 @@ function genAuthToken() {
         });
     });
 };
-
-const serverDir = "server";
 
 class Session {
     constructor(token, user) {
@@ -203,7 +204,7 @@ app.get("/dashboard/console", function (req, res) {
 app.get("/dashboard/config", function (req, res) {
     //currentConfig
     if (req.loggedIn) {
-        fs.readFile(`${serverDir}/server.properties`, "utf8", function (err, data) {
+        fs.readFile(`${config.server_dir}/server.properties`, "utf8", function (err, data) {
             if (err) {
                 res.redirect("/dashboard?status=generr");
             };
@@ -233,7 +234,7 @@ app.post("/login", function (req, res) {
 
 app.post("/server/updateconfig", function (req, res) {
     if (req.loggedIn) {
-        fs.writeFile(`${serverDir}/server.properties`, req.body.config, function (err) {
+        fs.writeFile(`${config.server_dir}/server.properties`, req.body.config, function (err) {
             if (err) {
                 res.redirect("/dashboard/config?status=generr");
             } else {
@@ -363,29 +364,47 @@ app.get("/server/start", function (req, res) {
             res.redirect("/dashboard?status=svrsrton");
         } else {
             console.log("Starting Server");
-            mc_server = child_proc.spawn(serverInfo.java, [
+
+            const noSudo = [
                 `-Xms${serverInfo.mem.min}M`, 
                 `-Xmx${serverInfo.mem.max}M`, 
                 "-jar", 
                 serverInfo.jarname, 
                 "nogui"
-            ], {
-                cwd: __dirname + `/${serverDir}`
+            ];
+
+            const withSudo =  [
+                serverInfo.java,
+                `-Xms${serverInfo.mem.min}M`, 
+                `-Xmx${serverInfo.mem.max}M`, 
+                "-jar", 
+                serverInfo.jarname, 
+                "nogui"
+            ];
+
+            mc_server = child_proc.spawn((serverInfo.sudo != null) ? serverInfo.sudo : serverInfo.java, (serverInfo.sudo != null) ? withSudo : noSudo, {
+                cwd: __dirname + `/${config.server_dir}`
             });
             
             mc_server.on("close", function (code) {
-                wss.broadcast(genPacket("consoleOut", {text: `Server stopped with code ${code}`}));
+                setTimeout(function () {
+                    wss.broadcast(genPacket("consoleOut", {text: `Server stopped with code ${code}`}));
+                }, config.socket_delay*1000);
                 server_active = false;
                 mc_server = null;
             });
 
             mc_server.stdout.on("data", function (chunk) {
-                wss.broadcast(genPacket("consoleOut", {text: chunk.toString()}));
+                setTimeout(function () {
+                    wss.broadcast(genPacket("consoleOut", {text: chunk.toString()}));
+                }, config.socket_delay*1000);
                 console.log(chunk.toString());
             });
 
             mc_server.stderr.on("data", function (chunk) {
-                wss.broadcast(genPacket("consoleOut", {text: chunk.toString()}));
+                setTimeout(function () {
+                    wss.broadcast(genPacket("consoleOut", {text: chunk.toString()}));
+                }, config.socket_delay*1000);
                 console.error(chunk.toString());
             });
 

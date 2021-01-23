@@ -1,6 +1,6 @@
 {
   "name": "sugarcane",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A Web Panel for Minecraft Server Management",
   "main": "index.js",
   "scripts": {
@@ -15,7 +15,6 @@
     "express": "^4.17.1",
     "express-handlebars": "^5.2.0",
     "minecraft-query": "^1.0.9",
-    "serverline": "^1.5.0",
     "ws": "^7.4.2"
   }
 }
