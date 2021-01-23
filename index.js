@@ -22,7 +22,7 @@ if (!fs.existsSync("./config")) {
         "socket_delay": 5,
         "server_dir": "server"
     },null,4));
-    fs.writeFileSync("./config/userlist.json", JSON.stringify([]));
+    fs.writeFileSync("./config/userlist.json", JSON.stringify([],null,4));
     fs.writeFileSync("./config/server.json", JSON.stringify({
         "name": "Server Name",
         "type": "Vanilla",
@@ -35,7 +35,7 @@ if (!fs.existsSync("./config")) {
             "min": 128,
             "max": 1024
         }
-    }));
+    },null,4));
 } else {
     if (!fs.existsSync("./config/app.json")) {
         console.log(`Missing Configuation Files Found! Creating Them...`);
@@ -47,7 +47,7 @@ if (!fs.existsSync("./config")) {
     };
     if (!fs.existsSync("./config/userlist.json")) {
         console.log(`Missing Configuation Files Found! Creating Them...`);
-        fs.writeFileSync("./config/userlist.json", JSON.stringify([]));
+        fs.writeFileSync("./config/userlist.json", JSON.stringify([],null,4));
     };
     if (!fs.existsSync("./config/server.json")) {
         console.log(`Missing Configuation Files Found! Creating Them...`);
@@ -63,7 +63,7 @@ if (!fs.existsSync("./config")) {
                 "min": 128,
                 "max": 1024
             }
-        }));
+        },null,4));
     };
 };
 
